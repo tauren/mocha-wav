@@ -146,7 +146,7 @@ module.exports = Mocha.interfaces['mocha-wav'] = function(suite) {
         });
       };
       if (suite.pending) fn = null;
-      var test = new Test(title, fn);
+      var test = new Test("when " + title, fn);
       test.file = file;
       suite.addTest(test);
       return test;
