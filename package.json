@@ -1,6 +1,6 @@
 {
   "name": "mocha-wav",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Mocha BDD UI plus when(), action(), and verify()",
   "main": "index.js",
   "scripts": {
