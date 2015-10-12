@@ -113,16 +113,23 @@ module.exports = Mocha.interfaces['mocha-wav'] = function(suite) {
     };
 
     /**
+     * Defines a `afterVerifyFn` to be used by any following `when()` calls
+     */
+    context.afterVerify = function(afterVerifyFn){
+      var suite = suites[0];
+      suite.afterVerifyFn = afterVerifyFn;
+    };
+
+    /**
      * Describes a specification or test-case with the given
-     * `title` that builds a thunk with the given `setupFn`,
-     * `actionFn`, and `verifyFn`. The `actionFn` and `verifyFn`
-     * may be previously defined in `action()` and `verify()`
+     * `title` that builds a thunk with the given `setupFn`.
      * calls.
      */
-    context.when = function(title, setupFn, actionFn, verifyFn){
+    context.when = function(title, setupFn){
       var suite = suites[0];
-      actionFn = actionFn || suite.actionFn || function(setupResults, next) { next(); };
-      verifyFn = verifyFn || suite.verifyFn || function(actionResults, setupResults) {};
+      var actionFn = suite.actionFn || function(setupResults, next) { next(); };
+      var verifyFn = suite.verifyFn || function(actionResults, setupResults) {};
+      var afterVerifyFn = suite.afterVerifyFn || function(actionResults, setupResults, next) { next(); };
       var fn = function(done) {
         setupFn(function(err, setupResults) {
           if (err) return done(err);
@@ -131,7 +138,10 @@ module.exports = Mocha.interfaces['mocha-wav'] = function(suite) {
             if (err) return done(err);
             // if (err) throw err;
             verifyFn(setupResults, actionResults);
-            done();
+            afterVerifyFn(setupResults, actionResults, function(err) {
+              if (err) return done(err);
+              done();
+            });
           });
         });
       };
