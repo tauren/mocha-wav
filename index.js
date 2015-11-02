@@ -122,31 +122,31 @@ module.exports = Mocha.interfaces['mocha-wav'] = function(suite) {
 
     /**
      * Describes a specification or test-case with the given
-     * `title` that builds a thunk with the given `setupFn`.
+     * `title` that builds a thunk with the given `whenFn`.
      * calls.
      */
-    context.when = function(title, setupFn){
+    context.when = function(title, whenFn){
       var suite = suites[0];
-      var actionFn = suite.actionFn || function(setupResults, next) { next(); };
-      var verifyFn = suite.verifyFn || function(actionResults, setupResults) {};
-      var afterVerifyFn = suite.afterVerifyFn || function(actionResults, setupResults, next) { next(); };
-      var fn = function(done) {
-        setupFn(function(err, setupResults) {
+      var actionFn = suite.actionFn || function(whenResults, next) { next(); };
+      var verifyFn = suite.verifyFn || function(actionResults, whenResults) {};
+      var afterVerifyFn = suite.afterVerifyFn || function(actionResults, whenResults, next) { next(); };
+      var itFn = function(done) {
+        whenFn.call(this, function(err, whenResults) {
           if (err) return done(err);
           // if (err) throw err;
-          actionFn(setupResults, function(err, actionResults) {
+          actionFn.call(this, whenResults, function(err, actionResults) {
             if (err) return done(err);
             // if (err) throw err;
-            verifyFn(setupResults, actionResults);
-            afterVerifyFn(setupResults, actionResults, function(err) {
+            verifyFn.call(this, whenResults, actionResults);
+            afterVerifyFn.call(this, whenResults, actionResults, function(err) {
               if (err) return done(err);
               done();
             });
-          });
-        });
+          }.bind(this));
+        }.bind(this));
       };
-      if (suite.pending) fn = null;
-      var test = new Test("when " + title, fn);
+      if (suite.pending) itFn = null;
+      var test = new Test("when " + title, itFn);
       test.file = file;
       suite.addTest(test);
       return test;
