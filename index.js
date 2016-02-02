@@ -152,5 +152,24 @@ module.exports = Mocha.interfaces['mocha-wav'] = function(suite) {
       return test;
     };
 
+    /**
+     * Exclusive when.
+     */
+
+    context.when.only = function(title, fn){
+      var test = context.when(title, fn);
+      var reString = '^' + escapeRe(test.fullTitle()) + '$';
+      mocha.grep(new RegExp(reString));
+      return test;
+    };
+
+    /**
+     * Pending when.
+     */
+
+    context.xwhen =
+    context.when.skip = function(title){
+      context.when(title);
+    };
   });
 };
