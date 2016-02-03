@@ -127,24 +127,27 @@ module.exports = Mocha.interfaces['mocha-wav'] = function(suite) {
      */
     context.when = function(title, whenFn){
       var suite = suites[0];
-      var actionFn = suite.actionFn || function(whenResults, next) { next(); };
-      var verifyFn = suite.verifyFn || function(actionResults, whenResults) {};
-      var afterVerifyFn = suite.afterVerifyFn || function(actionResults, whenResults, next) { next(); };
-      var itFn = function(done) {
-        whenFn.call(this, function(err, whenResults) {
-          if (err) return done(err);
-          // if (err) throw err;
-          actionFn.call(this, whenResults, function(err, actionResults) {
+      var itFn;
+      if (whenFn) {
+        var actionFn = suite.actionFn || function(whenResults, next) { next(); };
+        var verifyFn = suite.verifyFn || function(actionResults, whenResults) {};
+        var afterVerifyFn = suite.afterVerifyFn || function(actionResults, whenResults, next) { next(); };
+        itFn = function(done) {
+          whenFn.call(this, function(err, whenResults) {
             if (err) return done(err);
             // if (err) throw err;
-            verifyFn.call(this, whenResults, actionResults);
-            afterVerifyFn.call(this, whenResults, actionResults, function(err) {
+            actionFn.call(this, whenResults, function(err, actionResults) {
               if (err) return done(err);
-              done();
-            });
+              // if (err) throw err;
+              verifyFn.call(this, whenResults, actionResults);
+              afterVerifyFn.call(this, whenResults, actionResults, function(err) {
+                if (err) return done(err);
+                done();
+              });
+            }.bind(this));
           }.bind(this));
-        }.bind(this));
-      };
+        };
+      }
       if (suite.pending) itFn = null;
       var test = new Test("when " + title, itFn);
       test.file = file;
